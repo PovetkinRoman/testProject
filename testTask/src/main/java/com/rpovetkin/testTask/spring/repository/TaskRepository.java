@@ -1,4 +1,4 @@
-package com.rpovetkin.testTask.repository;
+package com.rpovetkin.testTask.spring.repository;
 
 import com.rpovetkin.testTask.model.Task;
 import org.springframework.data.jpa.repository.Query;
@@ -11,7 +11,10 @@ import java.util.List;
 @Repository
 public interface TaskRepository extends CrudRepository<Task, Long> {
 
-    List<Task> findByProject(Long projectId);
+//    List<Task> findByProject(Long projectId);
+    Task findByTaskId(long id);
+
+    List<Task> findAll();
 
     @Query(value = "select * from Task t where t.project_id = :projectId", nativeQuery = true)
     List<Task> findAllTaskInProject(@Param("projectId") Long projectId);

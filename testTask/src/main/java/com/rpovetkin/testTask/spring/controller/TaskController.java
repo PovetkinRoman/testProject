@@ -1,10 +1,9 @@
-package com.rpovetkin.testTask.controller;
+package com.rpovetkin.testTask.spring.controller;
 
+import com.rpovetkin.testTask.dao.ProjectDao;
+import com.rpovetkin.testTask.dao.TaskDao;
 import com.rpovetkin.testTask.model.Project;
 import com.rpovetkin.testTask.model.Task;
-import com.rpovetkin.testTask.model.TaskStatus;
-import com.rpovetkin.testTask.service.ProjectService;
-import com.rpovetkin.testTask.service.TaskService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -17,10 +16,14 @@ import java.util.List;
 @RestController
 public class TaskController {
 
+    private final ProjectDao projectDao;
+    private final TaskDao taskDao;
+
     @Autowired
-    private ProjectService projectService;
-    @Autowired
-    private TaskService taskService;
+    public TaskController(ProjectDao projectDao, TaskDao taskDao) {
+        this.projectDao = projectDao;
+        this.taskDao = taskDao;
+    }
 
     @GetMapping(value = "/saveTask")
     @ResponseBody
@@ -28,19 +31,19 @@ public class TaskController {
                                          @RequestParam(name = "taskName", required = true) String taskName,
                                          @RequestParam(name = "taskDescription", required = false) String taskDescription) {
 
-        Project project = projectService.findProjectById(projectId).orElseThrow(() -> new ProjectController.NotFoundException(projectId.toString()));
+        Project project = projectDao.findById(projectId);
         Task task = new Task();
         task.setProject(project);
         task.setTaskName(taskName);
         task.setDescription(taskDescription);
-        taskService.saveTask(task);
+        taskDao.save(task);
         return new ResponseEntity<>(task, HttpStatus.OK);
     }
 
     @DeleteMapping("/deleteTask")
     @ResponseBody
     public ResponseEntity deleteTask(@RequestParam(required = true) Long id) {
-        taskService.deleteTask(id);
+        taskDao.delete(id);
         return new ResponseEntity(HttpStatus.OK);
     }
 
@@ -50,7 +53,7 @@ public class TaskController {
     public ResponseEntity<Iterable<Task>> getAllTask() {
 
         try {
-            return new ResponseEntity<>(taskService.findAll(), HttpStatus.OK);
+            return new ResponseEntity<>(taskDao.findAll(), HttpStatus.OK);
         } catch (Exception e) {
             return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
         }
@@ -61,7 +64,7 @@ public class TaskController {
     public ResponseEntity<List<Task>> getAllTaskInProject(@RequestParam(required = true) Long projectId) {
 
         try {
-            return new ResponseEntity<>(taskService.findAllTaskInProjectId(projectId), HttpStatus.OK);
+            return new ResponseEntity<>(taskDao.findAllTaskInProjectId(projectId), HttpStatus.OK);
         } catch (Exception e) {
             return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
         }
@@ -75,15 +78,15 @@ public class TaskController {
                                            @RequestParam(name = "priority", required = false) int priority,
                                            @RequestParam(name = "taskStatus", required = false) String taskStatus) {
 
-        Task task = taskService.findTaskById(taskId).orElseThrow(() -> new ProjectController.NotFoundException(taskId.toString()));
-        if(task.getTaskStatus() == TaskStatus.CLOSED) {
-            throw new IllegalArgumentException("taskStatus is closed!");
-        }
-
-        Boolean isUpdate = taskService.updateTask(task, taskDescription, taskName, priority, taskStatus);
-        if(isUpdate) {
-            return new ResponseEntity<>(task, HttpStatus.OK);
-        }
+//        Task task = taskDao.findById(taskId);
+//        if(task.getTaskStatus() == TaskStatus.CLOSED) {
+//            throw new IllegalArgumentException("taskStatus is closed!");
+//        }
+//
+//        Boolean isUpdate = taskDao.updateTask(task, taskDescription, taskName, priority, taskStatus);
+//        if(isUpdate) {
+//            return new ResponseEntity<>(task, HttpStatus.OK);
+//        }
         return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
     }
 }
