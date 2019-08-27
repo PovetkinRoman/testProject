@@ -3,9 +3,11 @@ package com.rpovetkin.testTask.model;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.Getter;
 import lombok.Setter;
+import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.UpdateTimestamp;
 
 import javax.persistence.*;
-import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
 import java.util.Set;
 
 @Setter
@@ -25,10 +27,12 @@ public class Project {
     private String descriptionText;
 
     @Column(name = "dateOfCreation")
-    private LocalDateTime dateOfCreation = LocalDateTime.now();
+    @CreationTimestamp
+    private OffsetDateTime offsetDateTime;
 
     @Column(name = "dateOfLastModification")
-    private LocalDateTime dateOfLastModification;
+    @UpdateTimestamp
+    private OffsetDateTime dateOfLastModification;
 
     @JsonIgnore
     @OneToMany(mappedBy = "project", cascade = CascadeType.ALL)
@@ -36,5 +40,4 @@ public class Project {
 
     @Override
     public String toString() {return "Project name = " + projectName + "projectId = " + projectId;}
-
 }

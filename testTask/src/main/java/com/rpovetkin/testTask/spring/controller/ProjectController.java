@@ -12,87 +12,101 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
-@RequestMapping("/project")
 @RestController
 public class ProjectController {
 
-    @Autowired
-    private ProjectDao projectDao;
-    @Autowired
-    private TaskDao taskDao;
+    private final ProjectDao projectDao;
+    private final TaskDao taskDao;
 
+    @Autowired
+    public ProjectController(ProjectDao projectDao, TaskDao taskDao) {
+        this.projectDao = projectDao;
+        this.taskDao = taskDao;
+    }
 
-    @GetMapping("/getProjectById")
+    //TODO: добавить проверки на исключения
+
+    @GetMapping(value = "/project")
     @ResponseBody
-    public ResponseEntity<Project> getProjectById(@RequestParam(required = true) long id) {
+    public ResponseEntity<?> getAllProject() {
+        try {
+            return new ResponseEntity<>(projectDao.findAll(), HttpStatus.OK);
+        } catch(Exception e) {
+            return new ResponseEntity<>(e, HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    @GetMapping(value = "/project/{projectId}")
+    @ResponseBody
+    public ResponseEntity<?> getProjectById(@PathVariable(name = "projectId") long id) {
 
         try{
             Project project = projectDao.findById(id);
             return new ResponseEntity<>(project, HttpStatus.OK);
         } catch (RuntimeException e) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
+            return new ResponseEntity<>("badRequest, id is not exist\n" + e, HttpStatus.NOT_FOUND);
         }
     }
 
-    @GetMapping(value = "/getAllProject", produces = MimeTypeUtils.APPLICATION_JSON_VALUE, headers = "Accept=application/json")
+//    @PostMapping(value = "/project", produces = MimeTypeUtils.APPLICATION_JSON_VALUE, headers = "Accept=application/json")
+    @PostMapping(value = "/project")
     @ResponseBody
-    public ResponseEntity<List<Project>> getAllProject() {
-        //TODO: добавить проверку на исключения
-        return new ResponseEntity<>(projectDao.findAll(), HttpStatus.OK);
-    }
-
-    @GetMapping(value = "/saveProject")
-    @ResponseBody
-    public ResponseEntity<Project> saveProject(@RequestParam(required = true) ProjectApi projectApi) {
+    public ResponseEntity<?> saveProject(@RequestBody ProjectApi projectApi) {
         try{
             Project resultProject = projectDao.saveProject(projectApi);
-            return new ResponseEntity<>(resultProject, HttpStatus.OK);
+            return new ResponseEntity<>("Project is created, projectId = " + resultProject.getProjectId(), HttpStatus.CREATED);
         } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
+            return new ResponseEntity<>("I can't create a project with such data\n" + e, HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 
-    @GetMapping(value = "/updateProject")
+    @PatchMapping(value = "/project/{projectId}")
     @ResponseBody
-    public ResponseEntity<Project> updateProject(@RequestParam(name = "projectId", required = true) long projectId,
+    public ResponseEntity<?> updateProject(@PathVariable(name = "projectId") long projectId,
                                                  @RequestParam(name = "projectName") String projectName,
                                                  @RequestParam(name = "description", required = false) String description) {
-
         try{
-            projectDao.updateProject(projectId, projectName, description);
-            return new ResponseEntity<>(HttpStatus.OK);
+            //TODO: почитать как работают аннотации nonnull или nullable
+            Project resultProject = projectDao.updateProject(projectId, projectName, description);
+            return new ResponseEntity<>("Project is updated, projectId = " + resultProject.getProjectId(), HttpStatus.OK);
         } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+            return new ResponseEntity<>("I can't update a project with such data\n" + e, HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 
-    @DeleteMapping("/deleteProject")
+    @DeleteMapping("/project/{projectId}")
     @ResponseBody
-    public ResponseEntity deleteProject(@RequestParam(name = "projectId", required = true) Long id) {
-        //TODO: добавить проверку на исключения
-        projectDao.delete(id);
-        return new ResponseEntity(HttpStatus.OK);
+    public ResponseEntity<?> deleteProject(@PathVariable(name = "projectId") Long projectId) {
+        try{
+            projectDao.delete(projectId);
+            return new ResponseEntity<>("Project deleted", HttpStatus.OK);
+        } catch (Exception e) {
+            return new ResponseEntity<>("I can't delete a project with such data\n" + e, HttpStatus.NO_CONTENT);
+        }
     }
 
-    @GetMapping(value = "/getAllProjectWithSorted", produces = MimeTypeUtils.APPLICATION_JSON_VALUE, headers = "Accept=application/json")
+    @GetMapping(value = "/project/{sort}")
     @ResponseBody
-    public ResponseEntity<Iterable<Project>> getAllProjectWithSorted(@RequestParam(name = "valueToSorted", required = true) String valueToSorted) {
-        //TODO: добавить проверку на исключения
-        return new ResponseEntity<>(projectDao.findAll(valueToSorted), HttpStatus.OK);
+    public ResponseEntity<?> getAllProjectWithSorted(@PathVariable(name = "sort") String valueToSorted) {
+        try{
+            List<Project> projectListWithSorted = projectDao.findAll(valueToSorted);
+            return new ResponseEntity<>(projectListWithSorted, HttpStatus.OK);
+        } catch(Exception e) {
+            return new ResponseEntity<>("I can't search a data, valueToSorted = " + valueToSorted + "\n" + e, HttpStatus.NO_CONTENT);
+        }
     }
 
     @GetMapping(value = "/getPageProjects", produces = MimeTypeUtils.APPLICATION_JSON_VALUE, headers = "Accept=application/json")
     @ResponseBody
-    public ResponseEntity<Iterable<Project>> getPageProjects(@RequestParam(name = "valueToSorted", required = true) String valueToSorted,
-                                                             @RequestParam(name = "pageSize", required = true) int pageSize) {
-        //TODO: добавить проверку на исключения
+    public ResponseEntity<Iterable<Project>> getPageProjects(@RequestParam(name = "valueToSorted") String valueToSorted,
+                                                             @RequestParam(name = "pageSize") int pageSize) {
         return new ResponseEntity<>(projectDao.findAll(valueToSorted, pageSize), HttpStatus.OK);
     }
 
-    @ResponseStatus(HttpStatus.NOT_FOUND)
-    protected static class NotFoundException extends RuntimeException {
-        protected NotFoundException(String Id) {
-            super("could not find id" + Id + "'.");
-        }
-    }
+//    @ResponseStatus(HttpStatus.NOT_FOUND)
+//    protected static class NotFoundException extends RuntimeException {
+//        protected NotFoundException(String Id) {
+//            super("could not find id" + Id + "'.");
+//        }
+//    }
 }

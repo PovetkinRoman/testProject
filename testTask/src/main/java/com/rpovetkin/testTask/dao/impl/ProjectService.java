@@ -72,17 +72,17 @@ public class ProjectService implements ProjectDao {
     @Override
     public List<Project> findAll(String valueToSort, int pageSize) {
         Pageable pageableConf = PageRequest.of(0, pageSize, Sort.by(valueToSort).ascending());
-        //TODO: уточнить что конкретно необходимо возвращать
         return projectRepository.findAll(pageableConf).getContent();
     }
 
     @Override
-    public void updateProject(long projectId, String projectName, String projectDescription) {
+    public Project updateProject(long projectId, String projectName, String projectDescription) {
         Project project = findById(projectId);
         Assert.notNull(project, "project does not exist");
 
         if(!projectName.isEmpty()) project.setProjectName(projectName);
         if(!projectDescription.isEmpty()) project.setDescriptionText(projectDescription);
         save(project);
+        return project;
     }
 }
