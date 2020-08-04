@@ -1,7 +1,7 @@
-package com.rpovetkin.testTask.dao.impl;
+package com.rpovetkin.testTask.service.impl;
 
-import com.rpovetkin.testTask.dao.TaskDao;
 import com.rpovetkin.testTask.model.Task;
+import com.rpovetkin.testTask.service.TaskService;
 import com.rpovetkin.testTask.spring.repository.TaskRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -9,18 +9,18 @@ import org.springframework.stereotype.Service;
 import java.util.List;
 
 @Service
-public class TaskService implements TaskDao {
+public class TaskServiceImpl implements TaskService {
 
     private TaskRepository taskRepository;
 
     private static final int PRIORITY_MAX = 5;
 
     @Autowired
-    public TaskService(TaskRepository taskRepository) {
+    public TaskServiceImpl(TaskRepository taskRepository) {
         this.taskRepository = taskRepository;
     }
 
-//    //TODO: Проставить дату модификаци
+    //    //TODO: Проставить дату модификаци
 //    //TODO: Отрефакторить if/else
 //    @Override
 //    public Boolean updateTask(Task task, String description, String taskName, int priority, String status) {
@@ -53,38 +53,30 @@ public class TaskService implements TaskDao {
 //        }
 //        return Boolean.FALSE;
 //    }
-
-    @Override
     public Task findById(long id) {
-        return taskRepository.findByTaskId(id);
+        return taskRepository.findById(id);
     }
 
-    @Override
     public List<Task> findAll() {
         return taskRepository.findAll();
     }
 
-    @Override
-    public void save(Task task) {
+    public void saveTask(Task task) {
         taskRepository.save(task);
     }
 
-    @Override
-    public void delete(long id) {
+    public void deleteTask(long id) {
         taskRepository.deleteById(id);
     }
 
-    @Override
     public List<Task> findAll(String valueToSort) {
         return null;
     }
 
-    @Override
     public List<Task> findAll(String valueToSort, int pageSize) {
         return null;
     }
 
-    @Override
     public List<Task> findAllTaskInProjectId(Long projectId) {
         return taskRepository.findAllTaskInProject(projectId);
     }

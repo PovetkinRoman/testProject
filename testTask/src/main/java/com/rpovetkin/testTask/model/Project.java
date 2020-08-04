@@ -1,43 +1,116 @@
 package com.rpovetkin.testTask.model;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import lombok.Getter;
-import lombok.Setter;
-import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
 import javax.persistence.*;
-import java.time.OffsetDateTime;
-import java.util.Set;
+import javax.xml.bind.annotation.*;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
 
-@Setter
-@Getter
+@XmlRootElement(name = "project")
+@XmlAccessorType(XmlAccessType.FIELD)
 @Entity
-@Table(name = "Project")
+@Table(name = "project")
 public class Project {
 
+//    @XmlAttribute(name = "id")
+    @XmlTransient
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long projectId;
+    private Long id;
 
-    @Column(name = "projectName", length = 32)
+    //    @Column(name = "projectName", length = 32)
+    @XmlElement(name = "projectName")
     private String projectName;
 
-    @Column(name = "descriptionText")
+    //    @Column(name = "descriptionText")
+    @XmlElement(name = "descriptionText")
     private String descriptionText;
 
-    @Column(name = "dateOfCreation")
-    @CreationTimestamp
-    private OffsetDateTime offsetDateTime;
 
-    @Column(name = "dateOfLastModification")
+    //    @CreationTimestamp
+    @XmlElement(name = "dateOfCreation")
+    private Date dateOfCreation = new Date();
+
+    //    @Column(name = "dateOfLastModification")
     @UpdateTimestamp
-    private OffsetDateTime dateOfLastModification;
+    @XmlElement(name = "dateOfLastModification")
+    private Date dateOfLastModification;
 
     @JsonIgnore
-    @OneToMany(mappedBy = "project", cascade = CascadeType.ALL)
-    private Set<Task> task;
+    @OneToMany(cascade = CascadeType.ALL)
+    @JoinColumn(name = "project_ID")
+    @XmlElement(name = "task")
+    private List<Task> task;
+
+    public Project() {
+    }
+
+    public Project(String projectName, String descriptionText, List<Task> task) {
+        this.projectName = projectName;
+        this.descriptionText = descriptionText;
+        this.task = task;
+    }
+
+    public Long getId() {
+        return id;
+    }
+
+    public void setId(Long id) {
+        this.id = id;
+    }
+
+    public String getProjectName() {
+        return projectName;
+    }
+
+    public void setProjectName(String projectName) {
+        this.projectName = projectName;
+    }
+
+    public String getDescriptionText() {
+        return descriptionText;
+    }
+
+    public void setDescriptionText(String descriptionText) {
+        this.descriptionText = descriptionText;
+    }
+
+    public Date getDateOfCreation() {
+        return dateOfCreation;
+    }
+
+    public void setDateOfCreation(Date dateOfCreation) {
+        this.dateOfCreation = dateOfCreation;
+    }
+
+    public Date getDateOfLastModification() {
+        return dateOfLastModification;
+    }
+
+    public void setDateOfLastModification(Date dateOfLastModification) {
+        this.dateOfLastModification = dateOfLastModification;
+    }
+
+    public List<Task> getTask() {
+        return task == null ? new ArrayList<>() : this.task;
+    }
+
+    public void setTask(List<Task> task) {
+        this.task = task;
+    }
 
     @Override
-    public String toString() {return "Project name = " + projectName + "projectId = " + projectId;}
+    public String toString() {
+        return "Project{" +
+                "id=" + id +
+                ", projectName='" + projectName + '\'' +
+                ", descriptionText='" + descriptionText + '\'' +
+                ", dateOfCreation=" + dateOfCreation +
+                ", dateOfLastModification=" + dateOfLastModification +
+                ", task=" + task +
+                '}';
+    }
 }

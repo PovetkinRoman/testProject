@@ -1,70 +1,69 @@
 package com.rpovetkin.testTask.spring.controller;
 
-import com.rpovetkin.testTask.dao.ProjectDao;
-import com.rpovetkin.testTask.dao.TaskDao;
 import com.rpovetkin.testTask.model.Project;
 import com.rpovetkin.testTask.model.Task;
+import com.rpovetkin.testTask.service.ProjectService;
+import com.rpovetkin.testTask.service.TaskService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.util.MimeTypeUtils;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
-
+//TODO: переписать согласно REST спецификации(по аналогии с entity project)
 @RequestMapping("/project")
 @RestController
 public class TaskController {
 
-    private final ProjectDao projectDao;
-    private final TaskDao taskDao;
+    private final ProjectService projectService;
+    private final TaskService taskService;
 
     @Autowired
-    public TaskController(ProjectDao projectDao, TaskDao taskDao) {
-        this.projectDao = projectDao;
-        this.taskDao = taskDao;
+    public TaskController(ProjectService projectService, TaskService taskService) {
+        this.projectService = projectService;
+        this.taskService = taskService;
     }
 
     @GetMapping(value = "/saveTask")
     @ResponseBody
-    public ResponseEntity<Task> saveTask(@RequestParam(name = "projectId", required = true) Long projectId,
-                                         @RequestParam(name = "taskName", required = true) String taskName,
+    public ResponseEntity<Task> saveTask(@RequestParam(name = "projectId") Long projectId,
+                                         @RequestParam(name = "taskName") String taskName,
                                          @RequestParam(name = "taskDescription", required = false) String taskDescription) {
-
-        Project project = projectDao.findById(projectId);
+        //TODO:должно быть написано в service уровне
+        Project project = projectService.findById(projectId);
         Task task = new Task();
-        task.setProject(project);
+//        task.setProject(project);
         task.setTaskName(taskName);
         task.setDescription(taskDescription);
-        taskDao.save(task);
+        taskService.saveTask(task);
         return new ResponseEntity<>(task, HttpStatus.OK);
     }
 
     @DeleteMapping("/deleteTask")
     @ResponseBody
-    public ResponseEntity deleteTask(@RequestParam(required = true) Long id) {
-        taskDao.delete(id);
+    public ResponseEntity deleteTask(@RequestParam Long id) {
+        taskService.deleteTask(id);
         return new ResponseEntity(HttpStatus.OK);
     }
 
-    @GetMapping(value = "/getAllTask", produces = MimeTypeUtils.APPLICATION_JSON_VALUE, headers = "Accept=application/json")
-    @ResponseBody
-    //TODO: добавить пагинацию
-    public ResponseEntity<Iterable<Task>> getAllTask() {
-
-        try {
-            return new ResponseEntity<>(taskDao.findAll(), HttpStatus.OK);
-        } catch (Exception e) {
-            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
-        }
-    }
+//    @GetMapping(value = "/getAllTask", produces = MimeTypeUtils.APPLICATION_JSON_VALUE, headers = "Accept=application/json")
+//    @ResponseBody
+//    //TODO: добавить паджинацию
+//    public ResponseEntity<Iterable<Task>> getAllTask() {
+//
+//        try {
+//            return new ResponseEntity<>(taskService.findAll(), HttpStatus.OK);
+//        } catch (Exception e) {
+//            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+//        }
+//    }
 
     @GetMapping(value = "/getAllTaskInProject", produces = MimeTypeUtils.APPLICATION_JSON_VALUE, headers = "Accept=application/json")
     @ResponseBody
-    public ResponseEntity<List<Task>> getAllTaskInProject(@RequestParam(required = true) Long projectId) {
+    public ResponseEntity<?> getAllTaskInProject(@RequestParam Long projectId) {
 
         try {
-            return new ResponseEntity<>(taskDao.findAllTaskInProjectId(projectId), HttpStatus.OK);
+            return new ResponseEntity<>(taskService.findAllTaskInProjectId(projectId), HttpStatus.OK);
         } catch (Exception e) {
             return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
         }
@@ -72,7 +71,7 @@ public class TaskController {
 
     @GetMapping("/updateTask")
     @ResponseBody
-    public ResponseEntity<Task> updateTask(@RequestParam(name = "taskId", required = true) Long taskId,
+    public ResponseEntity<Task> updateTask(@RequestParam(name = "taskId") Long taskId,
                                            @RequestParam(name = "taskDescription", required = false) String taskDescription,
                                            @RequestParam(name = "taskName", required = false) String taskName,
                                            @RequestParam(name = "priority", required = false) int priority,
