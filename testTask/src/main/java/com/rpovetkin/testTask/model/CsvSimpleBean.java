@@ -232,7 +232,8 @@ public class CsvSimpleBean {
     }
 
     public String getPassportSeries() {
-        return passportSeries;
+//        return passportSeries;
+        return "AAA";
     }
 
     public void setPassportSeries(String passportSeries) {
@@ -240,7 +241,8 @@ public class CsvSimpleBean {
     }
 
     public String getPassportNumber() {
-        return passportNumber;
+//        return passportNumber;
+        return "AAA";
     }
 
     public void setPassportNumber(String passportNumber) {
@@ -256,7 +258,8 @@ public class CsvSimpleBean {
     }
 
     public String getBorrowerSurname() {
-        return borrowerSurname;
+//        return borrowerSurname;
+        return "AAA";
     }
 
     public void setBorrowerSurname(String borrowerSurname) {
@@ -264,7 +267,8 @@ public class CsvSimpleBean {
     }
 
     public String getBorrowerName() {
-        return borrowerName;
+//        return borrowerName;
+        return "AAA";
     }
 
     public void setBorrowerName(String borrowerName) {
@@ -272,7 +276,8 @@ public class CsvSimpleBean {
     }
 
     public String getBorrowerSecondName() {
-        return borrowerSecondName;
+//        return borrowerSecondName;
+        return "AAA";
     }
 
     public void setBorrowerSecondName(String borrowerSecondName) {

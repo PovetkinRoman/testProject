@@ -164,8 +164,12 @@ public class ProjectController {
 //            Path csvWriterPath = Paths.get(ClassLoader.getSystemResource("csv").toURI());
             log.info("csvReaderPath={}", csvReaderPath);
             List<CsvSimpleBean> csvTestBeansList = beanCsvService.beanBuilderExample(csvReaderPath, CsvSimpleBean.class);
-            beanCsvService.writeCsvFromBean(csvTestBeansList);
-            System.out.println(csvTestBeansList.toString());
+//            beanCsvService.writeCsvFromBean(csvTestBeansList);
+//            String agreementId = csvTestBeansList.get(0).getAgreementId();
+//            String agreementDate = csvTestBeansList.get(0).getAgreementDate();
+//            log.info("agreementId: {} - agreementDate: {}", agreementId, agreementDate);
+            beanCsvService.mappingCsvSimpleBeanToCsvResultBean(csvTestBeansList);
+            System.out.println("DONE!");
 
             return new ResponseEntity<>("Response project xml ok\n", HttpStatus.OK);
         } catch (Exception e) {
