@@ -10,26 +10,23 @@ import com.rpovetkin.testTask.model.CsvSimpleBean;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
-import java.io.FileWriter;
-import java.io.Reader;
-import java.io.Writer;
+import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
 
 @Service
 @Slf4j
 public class BeanCsvServiceImpl {
 
-    public final static String FIN4_NBCH_AGREEMENT_NUMBER = "270215/4ФИНАНС-И";
-    public final static String FIN4_NBCH_AGREEMENT_DATE = "27.02.2015";
+    public final static String NBCH_AGREEMENT_NUMBER = "270215/4ФИНАНС-И";
+    public final static String NBCH_AGREEMENT_DATE = "27.02.2015";
     public final static String FIN4_EQUIFAX_AGREEMENT_NUMBER = "б/н";
     public final static String FIN4_EQUIFAX_AGREEMENT_DATE = "29.07.2012";
 
-    public final static String SMS_NBCH_AGREEMENT_NUMBER = "160812/Г-МСК-И";
-    public final static String SMS_NBCH_AGREEMENT_DATE = "16.08.12";
+//    public final static String SMS_NBCH_AGREEMENT_NUMBER = "160812/Г-МСК-И";
+//    public final static String SMS_NBCH_AGREEMENT_DATE = "16.08.12";
     public final static String SMS_EQUIFAX_AGREEMENT_NUMBER = "ZZV070815-1";
     public final static String SMS_EQUIFAX_AGREEMENT_DATE = "07.08.2015";
 
@@ -62,6 +59,8 @@ public class BeanCsvServiceImpl {
                 System.out.println("Name : " + csvSimpleBean.getBorrowerName());
                 System.out.println("LoanAmt : " + csvSimpleBean.getLoanAmount());
                 System.out.println("AgreementId : " + csvSimpleBean.getAgreementId());
+                System.out.println("NbchFileName : " + csvSimpleBean.getNameFileToNBCH());
+
                 System.out.println("Count : " + count);
                 System.out.println("==========================");
                 count++;
@@ -72,14 +71,13 @@ public class BeanCsvServiceImpl {
             reader.close();
             return resultList;
         } catch (Exception ex) {
-            log.error("exception in builder bean");
             ex.printStackTrace();
-            return null;
+            throw new IllegalStateException("exception in builder bean");
         }
     }
 
     public void writeCsvFromBean(List<?> dataForCsvList) throws Exception {
-        Writer writer = new FileWriter("C:\\Projects\\testProject\\testTask\\src\\main\\resources\\csv\\testWriter.csv");
+        Writer writer = new FileWriter("C:\\Projects\\testProject\\testTask\\src\\main\\resources\\csv\\Output.csv");
         log.info("csvFileWriter inside");
         StatefulBeanToCsv sbc = new StatefulBeanToCsvBuilder(writer)
                 .withSeparator(';')
@@ -93,48 +91,44 @@ public class BeanCsvServiceImpl {
         List<CsvCBBean> csvCBBeans = new ArrayList<>();
         try {
             for (CsvSimpleBean csvSimpleBean : csvSimpleBeanList) {
-                CsvCBBean resultBean = new CsvCBBean();
-                resultBean.setAgreementNumber(csvSimpleBean.getAgreementNumber());
-                resultBean.setAgreementDate(csvSimpleBean.getAgreementDate());
-                resultBean.setAgreementId(csvSimpleBean.getAgreementId());
-                resultBean.setDischargeAgreementDate(csvSimpleBean.getDischargeAgreementDate());
-                resultBean.setDischargeFactDate(csvSimpleBean.getDischargeFactDate());
-                resultBean.setObligationDate(csvSimpleBean.getObligationDate());
-                resultBean.setLoanSum(csvSimpleBean.getLoanAmount());
-                resultBean.setTrancheNumber("1");
-                resultBean.setTrancheDate(csvSimpleBean.getObligationDate());
-                resultBean.setTrancheSum(csvSimpleBean.getLoanAmount());
-                resultBean.setAgreementType("Микрозайм (микрокредит)");
-                resultBean.setLoanerType("ФЛ");
-                resultBean.setPersonallyIdentifyDoc("1");
-                resultBean.setPassportSeries(csvSimpleBean.getPassportSeries());
-                resultBean.setPassportNum(csvSimpleBean.getPassportNumber());
-                resultBean.setBirthDate(csvSimpleBean.getBirthDate());
-                resultBean.setBorrowerSurname(csvSimpleBean.getBorrowerSurname());
-                resultBean.setBorrowerName(csvSimpleBean.getBorrowerName());
-                resultBean.setBorrowerSecondName(csvSimpleBean.getBorrowerSecondName());
-                resultBean.setLoanerINN("");
-                resultBean.setLoanerOGRN("");
-                resultBean.setLoanerFullName("");
-                resultBean.setLoanerINNLE("");
-                resultBean.setLoanerINNLE("");
-                resultBean.setLoanerOGRNLE("");
-                resultBean.setSrcINN("7703548386");
-                resultBean.setSrcOGRN("1057746710713");
-                resultBean.setSrcShortName("АО НБКИ");
-                resultBean.setMessageDateTime(csvSimpleBean.getToNBCHDate());
-                resultBean.setMessageNumber(csvSimpleBean.getNameFileToNBCH());
-                resultBean.setTicketDateTime(csvSimpleBean.getTicketDateTime());
-                resultBean.setTicketNumber(csvSimpleBean.getNameFileFromNBCH());
-                String agreementNumber = csvSimpleBean.getBrand().contains("SMS")
-                        ? SMS_NBCH_AGREEMENT_NUMBER
-                        : FIN4_NBCH_AGREEMENT_NUMBER;
-                String agreementDate = csvSimpleBean.getBrand().contains("SMS")
-                        ? SMS_NBCH_AGREEMENT_DATE
-                        : FIN4_NBCH_AGREEMENT_DATE;
-                resultBean.setSrcAgreementNumber(agreementNumber);
-                resultBean.setSrcAgreementDate(agreementDate);
-                csvCBBeans.add(resultBean);
+                if(!csvSimpleBean.getNameFileToNBCH().isEmpty()) {
+                    CsvCBBean resultBean = new CsvCBBean();
+                    resultBean.setAgreementNumber(csvSimpleBean.getAgreementNumber());
+                    resultBean.setAgreementDate(csvSimpleBean.getAgreementDate());
+                    resultBean.setAgreementId(csvSimpleBean.getAgreementId());
+                    resultBean.setDischargeAgreementDate(csvSimpleBean.getDischargeAgreementDate());
+                    resultBean.setDischargeFactDate(csvSimpleBean.getDischargeFactDate());
+                    resultBean.setObligationDate(csvSimpleBean.getObligationDate());
+                    resultBean.setLoanSum(csvSimpleBean.getLoanAmount());
+                    resultBean.setTrancheNumber("1");
+                    resultBean.setTrancheDate(csvSimpleBean.getObligationDate());
+                    resultBean.setTrancheSum(csvSimpleBean.getLoanAmount());
+                    resultBean.setAgreementType("Микрозаем (микрокредит)");
+                    resultBean.setLoanerType("ФЛ");
+                    resultBean.setPersonallyIdentifyDoc("1");
+                    resultBean.setPassportSeries(csvSimpleBean.getPassportSeries());
+                    resultBean.setPassportNum(csvSimpleBean.getPassportNumber());
+                    resultBean.setBirthDate(csvSimpleBean.getBirthDate());
+                    resultBean.setBorrowerSurname(csvSimpleBean.getBorrowerSurname());
+                    resultBean.setBorrowerName(csvSimpleBean.getBorrowerName());
+                    resultBean.setBorrowerSecondName(csvSimpleBean.getBorrowerSecondName());
+                    resultBean.setLoanerINN("");
+                    resultBean.setLoanerOGRN("");
+                    resultBean.setLoanerFullName("");
+                    resultBean.setLoanerINNLE("");
+                    resultBean.setLoanerINNLE("");
+                    resultBean.setLoanerOGRNLE("");
+                    resultBean.setSrcINN("7703548386");
+                    resultBean.setSrcOGRN("1057746710713");
+                    resultBean.setSrcShortName("АО НБКИ");
+                    resultBean.setMessageDateTime(csvSimpleBean.getToNBCHDate());
+                    resultBean.setMessageNumber(csvSimpleBean.getNameFileToNBCH());
+                    resultBean.setTicketDateTime(csvSimpleBean.getTicketDateTime());
+                    resultBean.setTicketNumber(csvSimpleBean.getNameFileFromNBCH());
+                    resultBean.setSrcAgreementNumber(NBCH_AGREEMENT_NUMBER);
+                    resultBean.setSrcAgreementDate(NBCH_AGREEMENT_DATE);
+                    csvCBBeans.add(resultBean);
+                }
                 if(!csvSimpleBean.getNameFileToEquifax().isEmpty()) {
                     CsvCBBean csvEquifaxBean = prepareEquifaxBean(csvSimpleBean);
                     csvCBBeans.add(csvEquifaxBean);
@@ -159,7 +153,7 @@ public class BeanCsvServiceImpl {
         result.setTrancheNumber("1");
         result.setTrancheDate(csvSimpleBean.getObligationDate());
         result.setTrancheSum(csvSimpleBean.getLoanAmount());
-        result.setAgreementType("Микрозайм (микрокредит)");
+        result.setAgreementType("Микрозаем (микрокредит)");
         result.setLoanerType("ФЛ");
         result.setPersonallyIdentifyDoc("1");
         result.setPassportSeries(csvSimpleBean.getPassportSeries());
@@ -182,10 +176,10 @@ public class BeanCsvServiceImpl {
         result.setTicketDateTime(csvSimpleBean.getTicketFileFromEquifaxDate());
         result.setTicketNumber(csvSimpleBean.getNameFileOpinionEquifax());
 
-        String agreementNumber = csvSimpleBean.getBrand().contains("SMS")
+        String agreementNumber = csvSimpleBean.getBrand().contains("смс")
                 ? SMS_EQUIFAX_AGREEMENT_NUMBER
                 : FIN4_EQUIFAX_AGREEMENT_NUMBER;
-        String agreementDate = csvSimpleBean.getBrand().contains("SMS")
+        String agreementDate = csvSimpleBean.getBrand().contains("смс")
                 ? SMS_EQUIFAX_AGREEMENT_DATE
                 : FIN4_EQUIFAX_AGREEMENT_DATE;
 

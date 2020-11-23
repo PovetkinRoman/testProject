@@ -158,7 +158,7 @@ public class ProjectController {
     @ResponseBody
     public ResponseEntity<String> getCsvFile() {
         try {
-            Path csvReaderPath = Paths.get(ClassLoader.getSystemResource("csv/testFullData.csv").toURI());
+            Path csvReaderPath = Paths.get(ClassLoader.getSystemResource("csv/InputLarge2.csv").toURI());
 //            Writer writer = new FileWriter("csv/writerTest.csv");
 
 //            Path csvWriterPath = Paths.get(ClassLoader.getSystemResource("csv").toURI());
