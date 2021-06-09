@@ -8,6 +8,8 @@ import com.opencsv.bean.*;
 import com.rpovetkin.testTask.model.CsvCBBean;
 import com.rpovetkin.testTask.model.CsvSimpleBean;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.springframework.stereotype.Service;
 
 import java.io.*;
@@ -19,6 +21,8 @@ import java.util.List;
 @Service
 @Slf4j
 public class BeanCsvServiceImpl {
+
+//    final static Logger log = LogManager.getLogger(BeanCsvServiceImpl.class);
 
     public final static String NBCH_AGREEMENT_NUMBER = "270215/4ФИНАНС-И";
     public final static String NBCH_AGREEMENT_DATE = "27.02.2015";
@@ -170,7 +174,7 @@ public class BeanCsvServiceImpl {
         result.setLoanerOGRNLE("");
         result.setSrcINN("7813199667");
         result.setSrcOGRN("1047820008895");
-        result.setSrcShortName("ООО ЭКС");
+        result.setSrcShortName("ООО БКИ ЭКВИФАКС");
         result.setMessageDateTime(csvSimpleBean.getFileEquifaxRequestDate());
         result.setMessageNumber(csvSimpleBean.getNameFileToEquifax());
         result.setTicketDateTime(csvSimpleBean.getTicketFileFromEquifaxDate());

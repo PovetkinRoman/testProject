@@ -1,31 +1,36 @@
 package com.rpovetkin.testTask.spring.controller;
 
 import com.rpovetkin.testTask.api.ProjectApi;
-import com.rpovetkin.testTask.model.CsvSimpleBean;
-import com.rpovetkin.testTask.model.Project;
-import com.rpovetkin.testTask.model.Task;
+import com.rpovetkin.testTask.model.*;
 import com.rpovetkin.testTask.service.ProjectService;
 import com.rpovetkin.testTask.service.TaskService;
 import com.rpovetkin.testTask.service.impl.BeanCsvServiceImpl;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.IOUtils;
+import org.apache.logging.log4j.LogManager;
+import org.joda.time.DateTime;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
+import org.springframework.http.*;
+import org.springframework.stereotype.Controller;
+import org.springframework.util.LinkedMultiValueMap;
+import org.springframework.util.MultiValueMap;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.client.RestTemplate;
+import org.springframework.web.multipart.MultipartFile;
 
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.Unmarshaller;
-import java.io.File;
-import java.io.FileWriter;
-import java.io.InputStream;
-import java.io.Writer;
+import java.io.*;
+import java.math.BigDecimal;
 import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.List;
+import java.util.stream.Collectors;
 
-@RestController
+//@RestController
+@Controller
 @Slf4j
 public class ProjectController {
 
@@ -134,6 +139,29 @@ public class ProjectController {
         }
     }
 
+    @GetMapping(value = "/testPostRequest")
+    @ResponseBody
+    public ResponseEntity<String> getTestPostRequest() {
+        RestTemplate restTemplate = new RestTemplate();
+        String url = "http://localhost:8080/v1/calculate";
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
+
+        MultiValueMap<String, String> map= new LinkedMultiValueMap<>();
+        map.add("clientId", "2006308217");
+        map.add("loanId", "2002903574");
+
+        HttpEntity<MultiValueMap<String, String>> request = new HttpEntity<>(map, headers);
+        log.info("request={} / url={}", request, url);
+
+
+        ResponseEntity<DebtRatio> response = restTemplate.postForEntity(url, request , DebtRatio.class);
+        DebtRatio body = response.getBody();
+        log.info("response={}", body);
+        return new ResponseEntity<>(response.toString(), response.getStatusCode());
+    }
+
     @GetMapping(value = "/saveProjectXml")
     @ResponseBody
     public ResponseEntity<?> saveProjectXml() {
@@ -158,7 +186,7 @@ public class ProjectController {
     @ResponseBody
     public ResponseEntity<String> getCsvFile() {
         try {
-            Path csvReaderPath = Paths.get(ClassLoader.getSystemResource("csv/InputLarge2.csv").toURI());
+            Path csvReaderPath = Paths.get(ClassLoader.getSystemResource("csv/Input_ver1.csv").toURI());
 //            Writer writer = new FileWriter("csv/writerTest.csv");
 
 //            Path csvWriterPath = Paths.get(ClassLoader.getSystemResource("csv").toURI());
@@ -176,6 +204,41 @@ public class ProjectController {
             log.error(e.toString());
             e.printStackTrace();
             return new ResponseEntity<>(e.toString(), HttpStatus.NO_CONTENT);
+        }
+    }
+
+    /**
+     * Временное api для заполнения таблицы каникулярщиков, после выполнения выпилить
+     */
+    @RequestMapping(value = "/addHolidaysRecord", produces = MediaType.APPLICATION_JSON_VALUE, method = RequestMethod.POST)
+    @ResponseBody
+    public ResponseEntity<String> addHolidaysRecord(@RequestParam(value = "file") MultipartFile file) throws IOException {
+
+        try {
+            InputStream is = file.getInputStream();
+            List<String> doc = new BufferedReader(new InputStreamReader(is, StandardCharsets.UTF_8))
+                    .lines()
+                    .collect(Collectors.toList());
+
+            doc.stream().parallel().forEach(el -> {
+                String[] strs = el.split(";");
+                LoanRepaymentHolidayAgreement holidayAgreement = new LoanRepaymentHolidayAgreement();
+
+                holidayAgreement.setLoanId(Long.valueOf(strs[6]));
+                holidayAgreement.setClientId(Long.valueOf(strs[7]));
+                holidayAgreement.setCreateDate(new DateTime(strs[1]).toDate());
+                holidayAgreement.setConfirmationDate(new DateTime(strs[1]).toDate());
+                holidayAgreement.setPeriodOpenDate(new DateTime(strs[2]).toDate());
+                holidayAgreement.setPeriodCloseDate(new DateTime(strs[3]).toDate());
+                holidayAgreement.setCloseDate(new DateTime(strs[4]).toDate());
+                holidayAgreement.setActionStake(new BigDecimal(strs[5]));
+//                holidayAgreementDao.save(holidayAgreement);
+                log.info("SystemController: holidayAgreement is saved ={}", holidayAgreement);
+            });
+
+            return new ResponseEntity<>("holiday record is added", HttpStatus.OK);
+        } catch (Exception e) {
+            return new ResponseEntity<>("holiday record is not added\n" + e, HttpStatus.CONFLICT);
         }
     }
 
